@@ -193,14 +193,14 @@ prompt = st.chat_input("Ask about coverage, riders, or premium estimates…")
 if prompt:
     st.session_state.messages.append(HumanMessage(content=prompt))
 
-    # Run the LangGraph loop using the accumulated messages
-    result = graph_app.invoke({"messages": st.session_state.messages})
-    new_messages = result["messages"]
+    # Only append NEW messages returned by the graph
+    old_len = len(st.session_state.messages)
 
-    # Append only the newly produced messages (AI + tool messages)
-    for m in new_messages:
-        # LangGraph returns full list; avoid duplicating SYSTEM and history
-        # We'll append only messages that are not already in session_state by identity check.
-        st.session_state.messages.append(m)
+    result = graph_app.invoke({"messages": st.session_state.messages})
+    returned = result["messages"]
+
+    # LangGraph returns full history; append only the delta
+    new_messages = returned[old_len:]
+    st.session_state.messages.extend(new_messages)
 
     st.rerun()

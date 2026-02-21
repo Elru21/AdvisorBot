@@ -1,0 +1,26 @@
+PolicyHolderID,Name,YearsOfMembership,Age,Location,BasePolicyID
+PH001,Alex Johnson,6,42,San Antonio,H001
+PH002,Maria Gonzalez,20,52,Chicago,M001
+PH003,Liam Chen,20,39,New York,L001
+PH004,Sophia Patel,6,45,New York,R001
+PH005,James Smith,12,48,Los Angeles,H001
+PH006,Emily Davis,20,56,New York,R001
+PH007,Aiden Brown,6,47,San Antonio,H001
+PH008,Olivia Wilson,4,63,New York,R001
+PH009,Ethan Garcia,2,37,New York,L001
+PH010,Ava Martinez,16,64,Phoenix,L001
+PH011,Michael Clark,11,26,Phoenix,L001
+PH012,Chloe Walker,10,36,Philadelphia,L001
+PH013,Daniel Rivera,12,46,Houston,M001
+PH014,Emma Harris,11,43,Houston,H001
+PH015,Ryan Lewis,9,29,San Antonio,M001
+PH016,Grace Thompson,11,47,Dallas,R001
+PH017,Lucas Robinson,11,34,Houston,R001
+PH018,Isabella Perez,18,47,Phoenix,R001
+PH019,Logan Edwards,20,32,San Diego,M001
+PH020,Aria Nguyen,15,55,Houston,L001
+PH021,Mason Hall,17,40,San Diego,H001
+PH022,Mia Ramirez,7,28,Chicago,M001
+PH023,Noah Turner,3,53,Philadelphia,R001
+PH024,Zoe Green,10,38,Los Angeles,M001
+PH025,Evelyn Scott,1,25,Phoenix,R001

@@ -1,0 +1,5 @@
+PolicyID,PolicyName,BasePremium,CoverageLimit,Deductible,Description
+H001,Homeowners,800,300000,1000,"Covers primary residential homes against risks like fire, theft, and natural disasters."
+R001,Renters,200,50000,500,Designed for renters to cover personal belongings and liability coverage.
+M001,Mobile_Home,500,100000,750,"Provides specialized coverage for mobile homes, including structures and skirting."
+L001,Landlord,300,150000,1000,"Offers coverage for landlords, including liability and loss of rent."

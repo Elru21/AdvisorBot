@@ -1,0 +1,27 @@
+RiderID,RiderName,Description,PricePerYear,MaxCoverageAmount,Deductible
+RDR001,Flood Insurance,Coverage for damages caused by floods,150,50000,500
+RDR002,Earthquake Insurance,Protection against earthquake-related damages,200,75000,1000
+RDR003,Water Backup,Covers damages from water backup or sump pump overflow,75,20000,250
+RDR004,Scheduled Personal Property,Extra coverage for high-value personal items,100,25000,300
+RDR005,Replacement Cost,Pays replacement cost for damaged/destroyed items instead of depreciated value,120,40000,400
+RDR006,Additional Structures,Covers detached structures like fences and sheds,60,15000,100
+RDR008,Green Home,Additional coverage for eco-friendly materials and upgrades,90,35000,150
+RDR009,Pet Damage Liability,Covers damage to rental property caused by pets beyond usual liability,75,5000,100
+RDR011,Roommate Coverage,Extends liability and property coverage to a roommate in the household,60,10000,100
+RDR013,Displacement Expense,Extended additional living expenses if renter relocates after covered event,70,12000,0
+RDR014,Loss of Use,Covers expenses for extended temporary accommodation if rental is uninhabitable,40,8000,0
+RDR016,Transport and Relocation,Covers costs for moving a mobile home for permanent relocation or evacuation,75,20000,250
+RDR017,Extended Coverage for Skirting and Attachments,"Protection for skirting, decks, and other attached structures unique to mobile homes",60,15000,100
+RDR018,Utility Connections,"Covers repair costs for damaged utility connections such as water, electricity, or gas lines",45,10000,50
+RDR019,Detached Structures for Mobile Homes,Coverage for detached structures like sheds or garages on mobile home properties,50,12000,75
+RDR020,Pest Infestation,"Coverage for repair and treatment costs due to pest infestations (e.g., termites, rodents)",40,8000,100
+RDR021,Tenant Damage,Coverage for damage caused by tenants to the rental property,125,30000,250
+RDR022,Loss of Rent,Reimbursement for lost rental income if property is uninhabitable due to a covered event,70,15000,0
+RDR023,Vacancy,Protection for the property during periods of vacancy,80,20000,150
+RDR024,Extended Liability,Increases liability coverage against lawsuits if tenants or visitors are injured,100,50000,500
+RDR027,Home Office Equipment,"Extra coverage for home office equipment like computers, printers, and desks",50,10000,100
+RDR028,Pool and Spa Liability,Extends liability coverage for accidents related to pools or spas on the property,90,50000,500
+RDR029,Antique and Fine Art,"Coverage for high-value antiques, fine art, or collectibles",75,30000,250
+RDR030,Garden and Landscaping,"Coverage for landscaping, trees, and garden structures damaged by storms or vandalism",60,15000,150
+RDR031,Roof Replacement Value,Covers roof replacement at full value without depreciation,125,40000,300
+RDR032,Home Cyber Protection,Protection for smart home systems or personal data against cyber attacks,40,10000,100

@@ -15,21 +15,33 @@ from langchain_openai import ChatOpenAI
 # -----------------------------
 # Data loading
 # -----------------------------
+
 @st.cache_data
 def load_data():
-    """
-    Expects these files in the repo (same folder as app.py):
-      - BasePlans.csv
-      - Riders.csv
-      - Junction.csv
-      - PolicyHolders.csv
-      - PolicyRiders.csv
-    """
-    base_plans = pd.read_csv("BasePlans.csv").set_index("PolicyID")
-    riders = pd.read_csv("Riders.csv").set_index("RiderID")
-    junction = pd.read_csv("Junction.csv")
-    policy_holders = pd.read_csv("PolicyHolders.csv").set_index("PolicyHolderID")
-    policy_riders = pd.read_csv("PolicyRiders.csv").set_index("PolicyHolderID")
+    base_plans = pd.read_csv("BasePlans.csv", dtype=str)
+    riders = pd.read_csv("Riders.csv", dtype=str)
+    junction = pd.read_csv("Junction.csv", dtype=str)
+    policy_holders = pd.read_csv("PolicyHolders.csv", dtype=str)
+    policy_riders = pd.read_csv("PolicyRiders.csv", dtype=str)
+
+    # Normalize IDs (prevents hidden whitespace issues)
+    for df, col in [
+        (policy_holders, "PolicyHolderID"),
+        (policy_holders, "BasePolicyID"),
+        (policy_riders, "PolicyHolderID"),
+        (policy_riders, "RiderID"),
+        (base_plans, "PolicyID"),
+        (riders, "RiderID"),
+        (junction, "PolicyID"),
+        (junction, "RiderID"),
+    ]:
+        if col in df.columns:
+            df[col] = df[col].astype(str).str.strip().str.upper()
+
+    base_plans = base_plans.set_index("PolicyID")
+    riders = riders.set_index("RiderID")
+    policy_holders = policy_holders.set_index("PolicyHolderID")
+    policy_riders = policy_riders.set_index("PolicyHolderID")
 
     return base_plans, riders, junction, policy_holders, policy_riders
 
@@ -37,8 +49,17 @@ def load_data():
 def build_domain_functions():
     base_plans, riders, junction, policy_holders, policy_riders = load_data()
 
-    def get_available_riders(base_policy_id: int) -> str:
+    def norm(x: str) -> str:
+        return str(x).strip().upper()
+
+    def get_available_riders(base_policy_id: str) -> str:
+        base_policy_id = norm(base_policy_id)
+
         riders_for_base = junction[junction["PolicyID"] == base_policy_id]["RiderID"].tolist()
+        if not riders_for_base:
+            # Helpful message instead of KeyError
+            return f"No riders found for base policy {base_policy_id}."
+
         rider_details = riders.loc[riders_for_base]
 
         rider_summary = "\n".join(
@@ -46,33 +67,63 @@ def build_domain_functions():
             for _, row in rider_details.iterrows()
         )
 
-        return f"Policy {base_plans.loc[base_policy_id].PolicyName} Riders:\n{rider_summary}"
+        policy_name = base_plans.loc[base_policy_id, "PolicyName"]
+        return f"Policy {policy_name} Riders:\n{rider_summary}"
 
-    def get_available_policies_for_user(user_id: int) -> str:
-        policy_holder_name = policy_holders.loc[user_id].Name
-        rider_summary = get_available_riders(policy_holders.loc[user_id].BasePolicyID)
+    def get_available_policies_for_user(user_id: str) -> str:
+        user_id = norm(user_id)
+
+        if user_id not in policy_holders.index:
+            return f"PolicyHolderID {user_id} not found. Please check the ID (e.g., PH001)."
+
+        policy_holder_name = policy_holders.loc[user_id, "Name"]
+        base_policy_id = policy_holders.loc[user_id, "BasePolicyID"]
+        rider_summary = get_available_riders(base_policy_id)
         return f"{policy_holder_name}:\n{rider_summary}"
 
-    def check_current_coverage(user_id: int) -> List[str]:
-        # policy_riders.loc[user_id] may return Series or DataFrame depending on number of riders
-        pr = policy_riders.loc[user_id]
+    def check_current_coverage(user_id: str) -> List[str]:
+        user_id = str(user_id).strip().upper()
+
+        if user_id not in policy_riders.index:
+            return []
+
+        pr = policy_riders.loc[user_id]  # Series (1 row) or DataFrame (many rows)
+
         if isinstance(pr, pd.Series):
             rider_ids = [pr["RiderID"]]
         else:
             rider_ids = pr["RiderID"].tolist()
 
-        rider_names = riders.loc[rider_ids]["RiderName"]
-        if isinstance(rider_names, pd.Series):
-            return rider_names.tolist()
-        return list(rider_names)
+        rider_ids = [str(x).strip().upper() for x in rider_ids]
 
-    def estimate_new_premium(user_id: int, additional_riders: List[str]) -> float:
-        user_base_plan = policy_holders.loc[user_id]["BasePolicyID"]
+        # riders is indexed by RiderID, so this returns series of names
+        rider_names = riders.loc[rider_ids, "RiderName"]
+
+        return rider_names.tolist() if isinstance(rider_names, pd.Series) else list(rider_names)
+
+    def estimate_new_premium(user_id: str, additional_riders: List[str]) -> float:
+        user_id = norm(user_id)
+        additional_riders = [str(x).strip() for x in additional_riders]
+
+        if user_id not in policy_holders.index:
+            raise ValueError(f"PolicyHolderID {user_id} not found.")
+
+        user_base_plan = norm(policy_holders.loc[user_id, "BasePolicyID"])
         current_riders = check_current_coverage(user_id)
+
         base_premium = float(base_plans.loc[user_base_plan, "BasePremium"])
 
-        current_rider_costs = float(riders.loc[riders["RiderName"].isin(current_riders), "PricePerYear"].sum())
-        additional_rider_costs = float(riders.loc[riders["RiderName"].isin(additional_riders), "PricePerYear"].sum())
+        # riders is indexed by RiderID, so we can't do riders["RiderName"] with .loc the way you had it.
+        # We'll map rider names -> prices via a merge-like lookup
+        riders_reset = riders.reset_index()  # columns: RiderID, RiderName, PricePerYear, ...
+
+        current_rider_costs = float(
+            riders_reset.loc[riders_reset["RiderName"].isin(current_riders), "PricePerYear"].astype(float).sum()
+        )
+        additional_rider_costs = float(
+            riders_reset.loc[riders_reset["RiderName"].isin(additional_riders), "PricePerYear"].astype(float).sum()
+        )
+
         total_rider_cost = current_rider_costs + additional_rider_costs
 
         total_riders = len(set(current_riders + additional_riders))
@@ -87,7 +138,6 @@ def build_domain_functions():
 
     return get_available_policies_for_user, check_current_coverage, estimate_new_premium
 
-
 # -----------------------------
 # Tools (LangChain tool wrappers)
 # -----------------------------
@@ -96,18 +146,18 @@ def build_tools_and_graph():
     get_available_policies_for_user, check_current_coverage, estimate_new_premium = build_domain_functions()
 
     @tool
-    def get_available_policies_for_user_tool(user_id: int) -> str:
-        """Lookup a policyholder's base policy and all available riders by policyholder ID."""
+    def get_available_policies_for_user_tool(user_id: str) -> str:
+        """Lookup base policy and available riders by PolicyHolderID (e.g., PH001)."""
         return get_available_policies_for_user(user_id)
 
     @tool
-    def check_current_coverage_tool(user_id: int) -> List[str]:
-        """Lookup current rider coverage for a specific policyholder ID."""
+    def check_current_coverage_tool(user_id: str) -> List[str]:
+        """Lookup current rider coverage by PolicyHolderID (e.g., PH001)."""
         return check_current_coverage(user_id)
 
     @tool
-    def estimate_new_premium_tool(user_id: int, additional_riders: List[str]) -> float:
-        """Estimate a new premium given a policyholder ID and a list of additional rider names."""
+    def estimate_new_premium_tool(user_id: str, additional_riders: List[str]) -> float:
+        """Estimate premium by PolicyHolderID (e.g., PH001) and rider names."""
         return estimate_new_premium(user_id, additional_riders)
 
     tools = [get_available_policies_for_user_tool, check_current_coverage_tool, estimate_new_premium_tool]
